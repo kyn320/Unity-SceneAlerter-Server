@@ -114,6 +114,10 @@ io.on('connection', socket => {
   socket.on('enter', (data)=>{
     let roomName = data["guid"];
     socket.join(roomName);
+
+    console.log(io.sockets.adapter.rooms.has(roomName));
+    console.log(io.sockets.adapter.rooms);
+
     let userCount = io.sockets.adapter.rooms.get(roomName).length;
     console.log(userCount);
     io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), data : userCount});
