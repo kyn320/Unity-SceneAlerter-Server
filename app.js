@@ -1,46 +1,39 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const nunjucks = require('nunjucks');
+const express = require('express')
+const http = require('http')
+const app = express();
+const path = require('path')
 
-var indexRouter = require('./routes/index');
-// var usersRouter = require('./routes/users');
+const server = http.createServer(app);
+const socketIO = require('socket.io')
 
-var app = express();
+const io = socketIO(server);
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'njk');
-nunjucks.configure('views', { 
-  express: app,
-  watch: true,
-});
+app.use(express.static(path.join(__dirname, "views")))
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+const PORT = process.env.port || 3000;
 
-app.use('/', indexRouter);
-// app.use('/users', usersRouter);
+var roomInfo = {};
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+io.on("connection", (socket) => {
+    socket['nickname'] = '익명 ' + Mathf.floor((Math.random() * 100));
+    console.log('Socket is Connected : ' + socket.nickname);
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+    socket.on('nickname', (nickname) => {
+        socket['nickname'] = nickname;
+    });
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+    socket.on("chat", (data)=>{
+        console.log('rev : ' + data);
+    })
 
-module.exports = app;
+    socket.on("enter",(data)=>{
+        socket.join(data["GUID"]);
+
+    })
+
+    socket.on("disconnecting", (data)=>{
+
+    })
+})
+
+app.listen(PORT, () => console.log('server is running ' + PORT))

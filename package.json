@@ -13,6 +13,12 @@
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "nunjucks": "^3.2.3",
-    "pug": "^3.0.2"
-  }
+    "pug": "^3.0.2",
+    "socket.io": "^4.7.2"
+  },
+  "description": "Express로 구현된 Node.js 백엔드 어플리케이션 템플릿입니다.\r ## 🖇️ 준비 및 확인사항",
+  "main": "app.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
