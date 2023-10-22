@@ -1,7 +1,10 @@
 const http = require('http');
 const socket = require('socket.io');
 const server = http.createServer();
-const port = 11100;
+const port = 3000;
+
+var express = require('express');
+var app     = express();
 
 var io = socket(server, {
     pingInterval: 10000,
