@@ -1,48 +1,47 @@
-const http = require('http');
-const socket = require('socket.io');
-const server = http.createServer();
-const port = 3000;
-
+var createError = require('http-errors');
 var express = require('express');
-var app     = express();
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+const nunjucks = require('nunjucks');
 
-var io = socket(server, {
-    pingInterval: 10000,
-    pingTimeout: 5000
+var indexRouter = require('./routes/index');
+// var usersRouter = require('./routes/users');
+
+var app = express();
+
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'njk');
+nunjucks.configure('views', { 
+  express: app,
+  watch: true,
 });
 
-io.use((socket, next) => {
-    if (socket.handshake.query.token === "UNITY") {
-        next();
-    } else {
-        next(new Error("Authentication error"));
-    }
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', indexRouter);
+// app.use('/users', usersRouter);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
 });
 
-io.on('connection', socket => {
-  console.log('connection');
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  setTimeout(() => {
-    socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
-  }, 1000);
-
-  socket.on('hello', (data) => {
-    console.log('hello', data);
-    socket.emit('hello', {date: new Date().getTime(), data: data});
-  });
-
-  socket.on('spin', (data) => {
-    console.log('spin');
-    socket.emit('spin', {date: new Date().getTime(), data: data});
-  });
-
-  socket.on('class', (data) => {
-    console.log('class', data);
-    socket.emit('class', {date: new Date().getTime(), data: data});
-  });
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
 });
 
-
-server.listen(port, () => {
-  console.log('listening on *:' + port);
-});
+module.exports = app;
