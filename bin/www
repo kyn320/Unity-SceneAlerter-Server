@@ -115,6 +115,8 @@ io.on('connection', socket => {
     console.log(data);
 
     socket.join(data["guid"]);
+
+    console.log(socket.rooms);
     let userCount = io.sockets.adapter.rooms[socket.rooms];
     io.sockets.in(socket.rooms).emit("userCount", {date: new Date().getTime(), userCount : userCount});
   });
