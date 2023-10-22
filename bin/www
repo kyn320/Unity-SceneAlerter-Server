@@ -105,24 +105,29 @@ io.use((socket, next) => {
 });
 
 io.on('connection', socket => {
-console.log('connection');
+  console.log('connection');
 
-setTimeout(() => {
-  socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
-}, 1000);
+  setTimeout(() => {
+    socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
+  }, 1000);
 
-socket.on('hello', (data) => {
-  console.log('hello', data);
-  socket.emit('hello', {date: new Date().getTime(), data: data});
-});
+  socket.on('enter', (data)=>{
+    socket.join(data["guid"]);
+    let userCount = io.sockets.adapter.rooms[socket.rooms];
+    io.sockets.in(socket.rooms).emit("userCount", {date: new Date().getTime(), userCount : userCount});
+  });
 
-socket.on('spin', (data) => {
-  console.log('spin');
-  socket.emit('spin', {date: new Date().getTime(), data: data});
-});
+  socket.on('leave', (data)=>{    
+    let roomName = socket.rooms;
 
-socket.on('class', (data) => {
-  console.log('class', data);
-  socket.emit('class', {date: new Date().getTime(), data: data});
-});
+    socket.leave(roomName);
+
+    let userCount = io.sockets.adapter.rooms[roomName];
+    io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), userCount: userCount});
+  });
+
+  socket.on('chat', (data) => {
+    console.log('chat', data);
+    io.sockets.in(socket.rooms).emit('chat', {date: new Date().getTime(), nick : sockets.nick , msg: data});
+  });
 });
