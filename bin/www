@@ -112,20 +112,15 @@ io.on('connection', socket => {
   }, 1000);
 
   socket.on('enter', (data)=>{
-    console.log(data);
-
-    socket.join(data["guid"]);
-
-    console.log(socket.rooms);
-    let userCount = io.sockets.adapter.rooms[socket.rooms];
-    io.sockets.in(socket.rooms).emit("userCount", {date: new Date().getTime(), userCount : userCount});
+    let roomName = data["guid"];
+    socket.join(roomName);
+    let userCount = io.sockets.adapter.rooms[roomName];
+    io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), userCount : userCount});
   });
 
   socket.on('leave', (data)=>{    
-    let roomName = socket.rooms;
-
+    let roomName = data["guid"];
     socket.leave(roomName);
-
     let userCount = io.sockets.adapter.rooms[roomName];
     io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), userCount: userCount});
   });
