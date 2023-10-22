@@ -105,13 +105,15 @@ io.use((socket, next) => {
 });
 
 io.on('connection', socket => {
-  console.log('connection');
+  console.log('connection ' + socket.id);
 
   setTimeout(() => {
     socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
   }, 1000);
 
   socket.on('enter', (data)=>{
+    console.log(data);
+
     socket.join(data["guid"]);
     let userCount = io.sockets.adapter.rooms[socket.rooms];
     io.sockets.in(socket.rooms).emit("userCount", {date: new Date().getTime(), userCount : userCount});
