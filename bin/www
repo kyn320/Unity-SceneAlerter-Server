@@ -121,8 +121,11 @@ io.on('connection', socket => {
   socket.on('leave', (data)=>{    
     let roomName = data["guid"];
     socket.leave(roomName);
-    let userCount = io.sockets.adapter.rooms.get(roomName).size;
-    io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), data: userCount});
+    if(io.sockets.adapter.rooms.has(roomName))
+    {
+      let userCount = io.sockets.adapter.rooms.get(roomName).size;
+      io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), data: userCount});
+    }
   });
 
   socket.on('chat', (data) => {
