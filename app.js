@@ -1,39 +1,45 @@
-const express = require('express')
-const http = require('http')
-const app = express();
-const path = require('path')
+const http = require('http');
+const socket = require('socket.io');
+const server = http.createServer();
+const port = 11100;
 
-const server = http.createServer(app);
-const socketIO = require('socket.io')
+var io = socket(server, {
+    pingInterval: 10000,
+    pingTimeout: 5000
+});
 
-const io = socketIO(server);
+io.use((socket, next) => {
+    if (socket.handshake.query.token === "UNITY") {
+        next();
+    } else {
+        next(new Error("Authentication error"));
+    }
+});
 
-app.use(express.static(path.join(__dirname, "views")))
+io.on('connection', socket => {
+  console.log('connection');
 
-const PORT = process.env.port || 3000;
+  setTimeout(() => {
+    socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
+  }, 1000);
 
-var roomInfo = {};
+  socket.on('hello', (data) => {
+    console.log('hello', data);
+    socket.emit('hello', {date: new Date().getTime(), data: data});
+  });
 
-io.on("connection", (socket) => {
-    socket['nickname'] = '익명 ' + Mathf.floor((Math.random() * 100));
-    console.log('Socket is Connected : ' + socket.nickname);
+  socket.on('spin', (data) => {
+    console.log('spin');
+    socket.emit('spin', {date: new Date().getTime(), data: data});
+  });
 
-    socket.on('nickname', (nickname) => {
-        socket['nickname'] = nickname;
-    });
+  socket.on('class', (data) => {
+    console.log('class', data);
+    socket.emit('class', {date: new Date().getTime(), data: data});
+  });
+});
 
-    socket.on("chat", (data)=>{
-        console.log('rev : ' + data);
-    })
 
-    socket.on("enter",(data)=>{
-        socket.join(data["GUID"]);
-
-    })
-
-    socket.on("disconnecting", (data)=>{
-
-    })
-})
-
-app.listen(PORT, () => console.log('server is running ' + PORT))
+server.listen(port, () => {
+  console.log('listening on *:' + port);
+});
