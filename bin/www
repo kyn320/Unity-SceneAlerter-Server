@@ -116,7 +116,8 @@ io.on('connection', socket => {
 
     if(socket.rooms.size > 0)
     {
-      socket.rooms.map((item)=>{
+      console.log(socket.rooms);
+      socket.rooms.forEach(item => {
         console.log("update nickName : " + item);
 
         let clients = io.sockets.adapter.rooms.get(item);
