@@ -90,7 +90,6 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
-
 var io = socket(server, {
   pingInterval: 10000,
   pingTimeout: 5000
@@ -111,20 +110,39 @@ io.on('connection', socket => {
     socket.emit('connection', {date: new Date().getTime(), data: "Hello Unity"})
   }, 1000);
 
+  socket.on('nickname', (data)=>{
+    socket.nickname = data["nickname"];
+    socket.emit("nickname", {date: new Date().getTime(), data : data["nickname"]});
+  });
+
   socket.on('enter', (data)=>{
     let roomName = data["guid"];
     socket.join(roomName);
-    let userCount = io.sockets.adapter.rooms.get(roomName).size;
-    io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), data : userCount});
+
+    let clients = io.sockets.adapter.rooms.get(roomName);
+    let nickNameList = [];
+    for (const clientId of clients ) {
+      const clientSocket = io.sockets.sockets.get(clientId);
+      nickNameList.push(clientSocket.nickname);
+    }
+
+    io.sockets.in(roomName).emit("roominfo", {date: new Date().getTime(), data : nickNameList});
   });
 
   socket.on('leave', (data)=>{    
     let roomName = data["guid"];
     socket.leave(roomName);
+
     if(io.sockets.adapter.rooms.has(roomName))
     {
-      let userCount = io.sockets.adapter.rooms.get(roomName).size;
-      io.sockets.in(roomName).emit("userCount", {date: new Date().getTime(), data: userCount});
+      let clients = io.sockets.adapter.rooms.get(roomName);
+      let nickNameList = [];
+      for (const clientId of clients ) {
+        const clientSocket = io.sockets.sockets.get(clientId);
+        nickNameList.push(clientSocket.nickname);
+      }
+  
+      io.sockets.in(roomName).emit("roominfo", {date: new Date().getTime(), data : nickNameList});
     }
   });
 
@@ -132,4 +150,17 @@ io.on('connection', socket => {
     console.log('chat', data);
     io.sockets.in(socket.rooms).emit('chat', {date: new Date().getTime(), nick : sockets.nick , msg: data});
   });
+
+  socket.on('disconnect', () => {
+    socket.rooms.map((item, index)=>{
+      console.log("disconnect : " + item);
+      socket.leave(item);
+      if(io.sockets.adapter.rooms.has(item))
+      {
+        let userCount = io.sockets.adapter.rooms.get(item).size;
+        io.sockets.in(item).emit("userCount", {date: new Date().getTime(), data: userCount});
+      }
+    });
+  });
+
 });
