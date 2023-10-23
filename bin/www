@@ -113,6 +113,22 @@ io.on('connection', socket => {
   socket.on('nickname', (data)=>{
     socket.nickname = data["nickname"];
     socket.emit("nickname", {date: new Date().getTime(), data : data["nickname"]});
+
+    if(socket.rooms.size > 0)
+    {
+      socket.rooms.map((item)=>{
+        console.log("update nickName : " + item);
+
+        let clients = io.sockets.adapter.rooms.get(item);
+        let nickNameList = [];
+        for (const clientId of clients ) {
+          const clientSocket = io.sockets.sockets.get(clientId);
+          nickNameList.push(clientSocket.nickname);
+        }
+
+        io.sockets.in(item).emit("roominfo", {date: new Date().getTime(), data : nickNameList});
+      });
+    }
   });
 
   socket.on('enter', (data)=>{
@@ -157,11 +173,14 @@ io.on('connection', socket => {
       socket.rooms.map((item)=>{
         console.log("disconnect : " + item);
         socket.leave(item);
-        if(io.sockets.adapter.rooms.has(item))
-        {
-          let userCount = io.sockets.adapter.rooms.get(item).size;
-          io.sockets.in(item).emit("userCount", {date: new Date().getTime(), data: userCount});
+        let clients = io.sockets.adapter.rooms.get(item);
+        let nickNameList = [];
+        for (const clientId of clients ) {
+          const clientSocket = io.sockets.sockets.get(clientId);
+          nickNameList.push(clientSocket.nickname);
         }
+  
+        io.sockets.in(item).emit("roominfo", {date: new Date().getTime(), data : nickNameList});
       });
     }
   });
