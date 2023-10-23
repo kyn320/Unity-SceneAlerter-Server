@@ -152,17 +152,18 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', () => {
-    console.log(socket.rooms);
-    console.log(socket.rooms.keys());
-    socket.rooms.map((item)=>{
-      console.log("disconnect : " + item);
-      socket.leave(item);
-      if(io.sockets.adapter.rooms.has(item))
-      {
-        let userCount = io.sockets.adapter.rooms.get(item).size;
-        io.sockets.in(item).emit("userCount", {date: new Date().getTime(), data: userCount});
-      }
-    });
+    if(socket.rooms.size > 0)
+    {
+      socket.rooms.map((item)=>{
+        console.log("disconnect : " + item);
+        socket.leave(item);
+        if(io.sockets.adapter.rooms.has(item))
+        {
+          let userCount = io.sockets.adapter.rooms.get(item).size;
+          io.sockets.in(item).emit("userCount", {date: new Date().getTime(), data: userCount});
+        }
+      });
+    }
   });
 
 });
