@@ -152,7 +152,9 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', () => {
-    socket.rooms.map((item, index)=>{
+    console.log(socket.rooms);
+    console.log(socket.rooms.keys());
+    socket.rooms.map((item)=>{
       console.log("disconnect : " + item);
       socket.leave(item);
       if(io.sockets.adapter.rooms.has(item))
